@@ -7,7 +7,8 @@ describe('Reviewer Model', () => {
     const data = {
         name: 'Angry Donald',
         company: 'angrydonald.com',
-        email: 'me@me.com'
+        email: 'me@me.com',
+        roles: ['admin']
     };
     const password = 'abc';
 
