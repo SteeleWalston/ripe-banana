@@ -13,7 +13,7 @@ module.exports = {
                 if(err.codeName !== 'NamespaceNotFound') throw err;
             });
     },
-    createToken(data = { email: 'me@me.com', password: '1234' }) {
+    createToken(data = { name: 'bob', company: 'bob.com', email: 'me@me.com', password: '1234', roles:['admin'] }) {
         return request
             .post('/auth/signup')
             .send(data)

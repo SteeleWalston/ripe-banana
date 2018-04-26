@@ -2,7 +2,7 @@ const { assert } = require('chai');
 const request = require('./request');
 const { dropCollection } = require('./db');
 
-describe.only('Auth API', () => {
+describe('Auth API', () => {
 
     beforeEach(() => dropCollection('reviewers'));
 
@@ -24,6 +24,15 @@ describe.only('Auth API', () => {
 
     it('signup', () => {
         assert.ok(token);
+    });
+
+    it('verifies', () => {
+        return request
+            .get('/auth/verify')
+            .set('Authorization', token)
+            .then(({ body }) => {
+                assert.isOk(body.verified);
+            });
     });
 
     it('signin', () => {

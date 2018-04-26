@@ -1,12 +1,16 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection } = require('./db');
+const { verify } = require('../../lib/util/token-service');
+const { dropCollection, createToken } = require('./db');
 
 describe('Films API', () => {
     
     before(() => dropCollection('studios'));
     before(() => dropCollection('actors'));
     before(() => dropCollection('films'));
+
+    // let token = '';
+    // before(() => createToken().then(t => token = t));
 
     const checkOk = res => {
         if(!res.ok) throw res.error;
@@ -37,6 +41,7 @@ describe('Films API', () => {
 
     before(() => {
         return request.post('/studios')
+            // .set('Authorization', token)
             .send(studio1)
             .then(({ body }) => {
                 studio1 = body;
@@ -45,6 +50,7 @@ describe('Films API', () => {
 
     before(() => {
         return request.post('/actors')
+            // .set('Authorization', token)
             .send(actor1)
             .then(({ body }) => {
                 actor1 = body;
@@ -53,6 +59,7 @@ describe('Films API', () => {
 
     before(() => {
         return request.post('/actors')
+            // .set('Authorization', token)
             .send(actor2)
             .then(({ body }) => {
                 actor2 = body;
@@ -60,10 +67,12 @@ describe('Films API', () => {
     });
 
     before(() => {
-        return request.post('/reviewers')
+        return request.post('/auth/signup')
+            // .set('Authorization', token)
             .send(reviewer1)
             .then(({ body }) => {
-                reviewer1 = body;
+                const id = verify(body.token).id;
+                reviewer1._id = id;
             });
     });
 
@@ -89,7 +98,10 @@ describe('Films API', () => {
 
     let reviewer1 = {
         name: 'IGN',
-        company: 'IGN'
+        company: 'IGN',
+        email: 'IGN@IGN.com',
+        password: '12345',
+        roles: ['admin']
     };
 
     let review1 = {
@@ -98,12 +110,15 @@ describe('Films API', () => {
         review: 'sweet film',
         film: {}
     };
+
+
     
     it('POST - saving a film', () => {
         film1.studio._id = studio1._id;
         film1.studio.name = studio1.name;
         film1.cast[0].actor._id = actor1._id;
         return request.post('/films')
+            // .set('Authorization', token)
             .send(film1)
             .then(checkOk)
             .then(({ body }) => {
@@ -151,6 +166,7 @@ describe('Films API', () => {
         review1.film = film1._id;
         review1.reviewer = reviewer1._id;
         return request.post('/reviews')
+            // .set('Authorization', token)
             .send(review1)
             .then(({ body }) => {
                 const { _id, __v, film, createdAt, updatedAt } = body;
