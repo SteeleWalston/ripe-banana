@@ -1,7 +1,7 @@
 const { assert } = require('chai');
 const request = require('./request');
 const { verify } = require('../../lib/util/token-service');
-const { dropCollection } = require('./db');
+const { dropCollection, createToken } = require('./db');
 
 describe('Review e2e', () => {
 
@@ -11,6 +11,9 @@ describe('Review e2e', () => {
     before(() => dropCollection('studios'));
     before(() => dropCollection('actors'));
     before(() => dropCollection('films'));
+
+    let token = '';
+    before(() => createToken().then(t => token = t));
 
     const checkOk = res => {
         if(!res.ok) throw res.error;
@@ -72,6 +75,7 @@ describe('Review e2e', () => {
         film1.studio.name = studio1.name;
         film1.cast[0].actor._id = actor1._id;
         return request.post('/films')
+            .set('Authorization', token)
             .send(film1)
             .then(({ body }) => {
                 film1 = body;
@@ -100,6 +104,7 @@ describe('Review e2e', () => {
         review1.film = film1._id;
 
         return request.post('/reviews')
+            .set('Authorization', token)
             .send(review1)
             .then(({ body }) => {
                 const { _id, __v, film, createdAt, updatedAt } = body;

@@ -1,6 +1,6 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection } = require('./db');
+const { dropCollection, createToken } = require('./db');
 
 const checkOk = res => {
     if(!res.ok) throw res.error;
@@ -9,9 +9,13 @@ const checkOk = res => {
 
 describe('actors API', () => {
 
+    before(() => dropCollection('reviewers'));
     before(() => dropCollection('actors'));
     before(() => dropCollection('studios'));
     before(() => dropCollection('films'));
+
+    let token = '';
+    before(() => createToken().then(t => token = t));
 
     let bradPitt = {
         name: 'Brad Pitt',
@@ -65,6 +69,7 @@ describe('actors API', () => {
         film1.studio.name = studio1.name;
         film1.cast[0].actor._id = bradPitt._id;
         return request.post('/films')
+            .set('Authorization', token)
             .send(film1)
             .then(checkOk)
             .then(({ body }) => {
@@ -89,6 +94,7 @@ describe('actors API', () => {
         bradPitt.pob = 'Shawnee, OK';
 
         return request.put(`/actors/${bradPitt._id}`)
+            .set('Authorization', token)
             .send(bradPitt)
             .then(checkOk)
             .then(({ body }) => {

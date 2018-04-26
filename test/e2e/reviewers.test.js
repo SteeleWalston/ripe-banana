@@ -1,7 +1,7 @@
 const { assert } = require('chai');
 const { verify } = require('../../lib/util/token-service');
 const request = require('./request');
-const { dropCollection, createToken } = require('./db');
+const { dropCollection } = require('./db');
 
 describe('Reviewer e2e', () => {
 
@@ -15,7 +15,7 @@ describe('Reviewer e2e', () => {
         return res;
     };
 
-    // let token = '';
+    let token = '';
     // before(() => createToken().then(t => token = t));
 
     let donald = {
@@ -78,6 +78,7 @@ describe('Reviewer e2e', () => {
         return request.post('/auth/signup')
             .send(jeff)
             .then(({ body }) => {
+                token = body.token;
                 const id = verify(body.token).id;
                 jeff._id = id;
             });
@@ -113,7 +114,7 @@ describe('Reviewer e2e', () => {
         film1.studio.name = studio1.name;
         film1.cast[0].actor._id = actor1._id;
         return request.post('/films')
-            // .set('Authorization', token)
+            .set('Authorization', token)
             .send(film1)
             .then(checkOk)
             .then(({ body }) => {
@@ -128,7 +129,7 @@ describe('Reviewer e2e', () => {
         review1.film = film1._id;
 
         return request.post('/reviews')
-            // .set('Authorization', token)
+            .set('Authorization', token)
             .send(review1)
             .then(({ body }) => {
                 review1 = body;
@@ -147,6 +148,7 @@ describe('Reviewer e2e', () => {
 
     it('gets reviewer by id snd returns reviews', () => {
         return request.get(`/reviewers/${jeff._id}`)
+            .set('Authorization', token)
             .then(({ body }) => {
                 assert.deepEqual(body, {
                     _id: jeff._id,
@@ -171,6 +173,7 @@ describe('Reviewer e2e', () => {
 
     it('gets all reviewers', () => {
         return request.get('/reviewers')
+            .set('Authorization', token)
             .then(({ body }) => {
                 assert.deepEqual(body, [jeff, rob, donald].map(getFields));
             });

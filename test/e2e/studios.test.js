@@ -1,10 +1,14 @@
 const { assert } = require('chai');
 const request = require('./request');
-const { dropCollection } = require('./db');
+const { dropCollection, createToken } = require('./db');
 
 describe('Studio API', () => {
 
+    before(() => dropCollection('reviewers'));
     before(() => dropCollection('studios'));
+
+    let token = '';
+    before(() => createToken().then(t => token = t));
 
     let studio1 = {
         name: 'Miramax',
@@ -91,6 +95,7 @@ describe('Studio API', () => {
         film1.studio.name = studio1.name;
         film1.cast[0].actor._id = actor1._id;
         return request.post('/films')
+            .set('Authorization', token)
             .send(film1)
             .then(checkOk)
             .then(({ body }) => {

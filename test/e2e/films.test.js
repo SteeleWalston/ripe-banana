@@ -1,16 +1,16 @@
 const { assert } = require('chai');
 const request = require('./request');
 const { verify } = require('../../lib/util/token-service');
-const { dropCollection, createToken } = require('./db');
+const { dropCollection } = require('./db');
 
 describe('Films API', () => {
     
+    before(() => dropCollection('reviewers'));
     before(() => dropCollection('studios'));
     before(() => dropCollection('actors'));
     before(() => dropCollection('films'));
 
-    // let token = '';
-    // before(() => createToken().then(t => token = t));
+    let token = '';
 
     const checkOk = res => {
         if(!res.ok) throw res.error;
@@ -41,7 +41,6 @@ describe('Films API', () => {
 
     before(() => {
         return request.post('/studios')
-            // .set('Authorization', token)
             .send(studio1)
             .then(({ body }) => {
                 studio1 = body;
@@ -50,7 +49,6 @@ describe('Films API', () => {
 
     before(() => {
         return request.post('/actors')
-            // .set('Authorization', token)
             .send(actor1)
             .then(({ body }) => {
                 actor1 = body;
@@ -59,7 +57,6 @@ describe('Films API', () => {
 
     before(() => {
         return request.post('/actors')
-            // .set('Authorization', token)
             .send(actor2)
             .then(({ body }) => {
                 actor2 = body;
@@ -68,9 +65,9 @@ describe('Films API', () => {
 
     before(() => {
         return request.post('/auth/signup')
-            // .set('Authorization', token)
             .send(reviewer1)
             .then(({ body }) => {
+                token = body.token;
                 const id = verify(body.token).id;
                 reviewer1._id = id;
             });
@@ -118,7 +115,7 @@ describe('Films API', () => {
         film1.studio.name = studio1.name;
         film1.cast[0].actor._id = actor1._id;
         return request.post('/films')
-            // .set('Authorization', token)
+            .set('Authorization', token)
             .send(film1)
             .then(checkOk)
             .then(({ body }) => {
@@ -150,6 +147,7 @@ describe('Films API', () => {
         film2.studio.name = studio1.name;
         film2.cast[0].actor._id = actor2._id;
         return request.post('/films')
+            .set('Authorization', token)
             .send(film2)
             .then(checkOk)
             .then(({ body }) => {
@@ -166,7 +164,7 @@ describe('Films API', () => {
         review1.film = film1._id;
         review1.reviewer = reviewer1._id;
         return request.post('/reviews')
-            // .set('Authorization', token)
+            .set('Authorization', token)
             .send(review1)
             .then(({ body }) => {
                 const { _id, __v, film, createdAt, updatedAt } = body;
@@ -216,7 +214,7 @@ describe('Films API', () => {
     it('deletes a film', () => {
         return request.delete(`/films/${film2._id}`)
             .then(() => {
-                return request.get(`/films/${film2._id}`); 
+                return request.get(`/films/${film2._id}`);
             })
             .then(res => {
                 assert.equal(res.status, 404);
