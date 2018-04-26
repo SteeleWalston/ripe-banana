@@ -2,9 +2,9 @@ const { assert } = require('chai');
 const createEnsureAuth = require('../../lib/util/ensure-auth');
 const tokenService = require('../../lib/util/token-service');
 
-describe.skip('ensure auth middleware', () => {
+describe.only('ensure auth middleware', () => {
 
-    const reviewer = { _id: 1234 };
+    const reviewer = { _id: 123 };
     let token = '';
     beforeEach(() => token = tokenService.sign(reviewer));
 
@@ -23,6 +23,20 @@ describe.skip('ensure auth middleware', () => {
         };
 
         ensureAuth(req, null, next);
+    });
+
+    it('calls next with error when token is bad', done => {
+        const req = {
+            get() { return 'bad-token'; }
+        };
+
+        const next = err => {
+            assert.equal(err.status, 401);
+            done();
+        };
+
+        ensureAuth(req, null, next);
+
     });
 
 });
